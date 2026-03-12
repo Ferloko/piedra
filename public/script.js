@@ -1,6 +1,16 @@
 class RockPaperScissorsGame {
     constructor() {
-        this.socket = io();
+        // Configure Socket.IO connection based on environment
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const serverUrl = isLocalhost 
+            ? 'http://localhost:3000'
+            : window.location.origin;
+        
+        this.socket = io(serverUrl, {
+            transports: ['polling', 'websocket'],
+            upgrade: true,
+            rememberUpgrade: true
+        });
         this.currentRoom = null;
         this.currentPlayer = null;
         this.hasChosen = false;
