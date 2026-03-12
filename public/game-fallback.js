@@ -60,14 +60,15 @@ class RockPaperScissorsGameHTTP {
         this.searchText.textContent = 'Buscando oponente...';
         
         try {
-            const response = await fetch(`http://localhost:8080/api/match?action=findGame&playerId=${this.playerId}`);
+            const response = await fetch(`${window.location.origin}/api/match?action=findGame&playerId=${this.playerId}`);
             const data = await response.json();
             
             if (data.success) {
                 if (data.waiting) {
                     this.searchText.textContent = 'Esperando a otro jugador...';
-                    this.startPolling();
-                } else {
+                    // Start polling to check if we've been matched
+                    this.startWaitingPolling();
+                } else if (data.gameId) {
                     this.currentRoom = data.gameId;
                     this.currentPlayer = data.player;
                     this.showGameScreen();
@@ -108,7 +109,7 @@ class RockPaperScissorsGameHTTP {
         this.hasChosen = true;
         
         try {
-            const response = await fetch(`http://localhost:8080/api/match?action=makeChoice&gameId=${this.currentRoom}&playerId=${this.playerId}&choice=${choice}`);
+            const response = await fetch(`${window.location.origin}/api/match?action=makeChoice&gameId=${this.currentRoom}&playerId=${this.playerId}&choice=${choice}`);
             const data = await response.json();
             
             if (data.success) {
@@ -186,7 +187,7 @@ class RockPaperScissorsGameHTTP {
     
     async playAgain() {
         try {
-            const response = await fetch(`http://localhost:8080/api/match?action=playAgain&gameId=${this.currentRoom}&playerId=${this.playerId}`);
+            const response = await fetch(`${window.location.origin}/api/match?action=playAgain&gameId=${this.currentRoom}&playerId=${this.playerId}`);
             const data = await response.json();
             
             if (data.success) {
@@ -207,9 +208,16 @@ class RockPaperScissorsGameHTTP {
     
     startPolling() {
         this.stopPolling();
+        
+        // Only start polling if we have a valid gameId
+        if (!this.currentRoom) {
+            console.log('No gameId available, not starting polling');
+            return;
+        }
+        
         this.pollingInterval = setInterval(async () => {
             try {
-                const response = await fetch(`http://localhost:8080/api/match?action=checkGame&gameId=${this.currentRoom}`);
+                const response = await fetch(`${window.location.origin}/api/match?action=checkGame&gameId=${this.currentRoom}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -230,10 +238,34 @@ class RockPaperScissorsGameHTTP {
         }, 1000);
     }
     
+    startWaitingPolling() {
+        this.stopPolling();
+        this.waitingPollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`${window.location.origin}/api/match?action=findGame&playerId=${this.playerId}`);
+                const data = await response.json();
+                
+                if (data.success && data.gameId) {
+                    // We've been matched!
+                    this.currentRoom = data.gameId;
+                    this.currentPlayer = data.player;
+                    this.showGameScreen();
+                    this.startPolling();
+                }
+            } catch (error) {
+                console.error('Waiting polling error:', error);
+            }
+        }, 2000); // Check every 2 seconds
+    }
+    
     stopPolling() {
         if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
             this.pollingInterval = null;
+        }
+        if (this.waitingPollingInterval) {
+            clearInterval(this.waitingPollingInterval);
+            this.waitingPollingInterval = null;
         }
     }
     

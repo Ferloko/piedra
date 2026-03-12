@@ -9,10 +9,16 @@ const io = socketIo(server);
 
 const PORT = process.env.PORT || 3000;
 
+const fs = require('fs');
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // Read the template and replace placeholder with Socket.IO script
+    const template = fs.readFileSync(path.join(__dirname, 'server-template.html'), 'utf8');
+    const htmlWithSocketIO = template.replace('{{SOCKET_IO_SCRIPT}}', 
+        '<script src="/socket.io/socket.io.js"></script>');
+    res.send(htmlWithSocketIO);
 });
 
 const rooms = new Map();

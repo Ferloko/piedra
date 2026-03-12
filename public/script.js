@@ -287,14 +287,19 @@ class RockPaperScissorsGame {
 
 // Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we're on localhost and can use Socket.IO
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Check which server we're running on
+    const currentPort = window.location.port;
+    const isSocketIOServer = currentPort === '3000';
+    const isHTTPServer = currentPort === '8080';
     
-    if (isLocalhost && typeof io !== 'undefined') {
-        console.log('Using Socket.IO for local development');
+    if (isSocketIOServer && typeof io !== 'undefined') {
+        console.log('Using Socket.IO on port 3000');
         new RockPaperScissorsGame();
+    } else if (isHTTPServer) {
+        console.log('Using HTTP polling on port 8080');
+        new RockPaperScissorsGameHTTP();
     } else {
-        console.log('Using HTTP fallback for production or Socket.IO not available');
+        console.log('Unknown environment, defaulting to HTTP fallback');
         new RockPaperScissorsGameHTTP();
     }
 });
