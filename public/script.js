@@ -6,11 +6,22 @@ class RockPaperScissorsGame {
             ? 'http://localhost:3000'
             : window.location.origin;
         
+        // Try Socket.IO with timeout
         this.socket = io(serverUrl, {
             transports: ['polling', 'websocket'],
             upgrade: true,
-            rememberUpgrade: true
+            rememberUpgrade: true,
+            timeout: 5000,
+            forceNew: true
         });
+        
+        // Set up connection timeout
+        this.connectionTimeout = setTimeout(() => {
+            if (!this.socket.connected) {
+                console.log('Socket.IO connection timeout, falling back to HTTP');
+                this.fallbackToHTTP();
+            }
+        }, 5000);
         this.currentRoom = null;
         this.currentPlayer = null;
         this.hasChosen = false;
@@ -67,7 +78,13 @@ class RockPaperScissorsGame {
     
     setupSocketListeners() {
         this.socket.on('connect', () => {
+            clearTimeout(this.connectionTimeout);
             this.updateConnectionStatus(true);
+        });
+        
+        this.socket.on('connect_error', (error) => {
+            console.log('Socket.IO connection error:', error);
+            this.fallbackToHTTP();
         });
         
         this.socket.on('disconnect', () => {
@@ -101,6 +118,34 @@ class RockPaperScissorsGame {
         
         this.socket.on('opponentDisconnected', () => {
             this.showOpponentDisconnected();
+        });
+    }
+    
+    fallbackToHTTP() {
+        clearTimeout(this.connectionTimeout);
+        if (this.socket) {
+            this.socket.disconnect();
+        }
+        
+        // Clean up and switch to HTTP version
+        this.cleanup();
+        new RockPaperScissorsGameHTTP();
+    }
+    
+    cleanup() {
+        // Clean up event listeners and timeouts
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+        }
+        
+        // Remove event listeners from buttons
+        this.findGameBtn.removeEventListener('click', this.findGame);
+        this.cancelSearchBtn.removeEventListener('click', this.cancelSearch);
+        this.playAgainBtn.removeEventListener('click', this.playAgain);
+        this.newGameBtn.removeEventListener('click', this.newGame);
+        
+        this.choiceButtons.forEach(btn => {
+            btn.removeEventListener('click', this.makeChoice);
         });
     }
     
@@ -242,5 +287,14 @@ class RockPaperScissorsGame {
 
 // Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new RockPaperScissorsGame();
+    // Check if we're on localhost and can use Socket.IO
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalhost && typeof io !== 'undefined') {
+        console.log('Using Socket.IO for local development');
+        new RockPaperScissorsGame();
+    } else {
+        console.log('Using HTTP fallback for production or Socket.IO not available');
+        new RockPaperScissorsGameHTTP();
+    }
 });
