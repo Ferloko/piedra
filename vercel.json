@@ -1,14 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/match.js": {
+    "match.js": {
       "maxDuration": 30
     }
   },
   "routes": [
     {
       "src": "/api/match",
-      "dest": "/api/match.js"
+      "dest": "/match.js"
     },
     {
       "src": "/(.*)",
