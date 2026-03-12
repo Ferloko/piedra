@@ -15,7 +15,19 @@ function determineWinner(choice1, choice2) {
 }
 
 module.exports = async function handler(req, res) {
-    const { method, query } = req;
+    try {
+        // Add CORS headers
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        // Handle preflight requests
+        if (req.method === 'OPTIONS') {
+            res.status(200).end();
+            return;
+        }
+        
+        const { method, query } = req;
     
     if (method === 'GET') {
         const { action, playerId, gameId, choice } = query;
@@ -125,6 +137,10 @@ module.exports = async function handler(req, res) {
             });
         }
     }
-    
-    res.status(400).json({ success: false, error: 'Invalid request' });
+        
+        res.status(400).json({ success: false, error: 'Invalid request' });
+    } catch (error) {
+        console.error('API Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
 }

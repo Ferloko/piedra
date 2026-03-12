@@ -1,14 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/socket.js": {
+    "api/match.js": {
       "maxDuration": 30
     }
   },
   "routes": [
     {
-      "src": "/socket.io/(.*)",
-      "dest": "/api/socket.js"
+      "src": "/api/match",
+      "dest": "/api/match.js"
     },
     {
       "src": "/(.*)",
