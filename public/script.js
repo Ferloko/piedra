@@ -79,6 +79,7 @@ class RockPaperScissorsGame {
     setupSocketListeners() {
         this.socket.on('connect', () => {
             clearTimeout(this.connectionTimeout);
+            window.gameConnected = true; // Mark as connected for fallback detection
             this.updateConnectionStatus(true);
         });
         
@@ -299,7 +300,31 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Using HTTP polling on port 8080');
         new RockPaperScissorsGameHTTP();
     } else {
-        console.log('Unknown environment, defaulting to HTTP fallback');
-        new RockPaperScissorsGameHTTP();
+        console.log('Production mode detected - trying multiplayer first, then simple mode');
+        // Try multiplayer first with timeout
+        try {
+            if (typeof io !== 'undefined') {
+                console.log('Socket.IO available, trying multiplayer...');
+                new RockPaperScissorsGame();
+                
+                // Set timeout to fallback to simple mode if multiplayer doesn't work
+                setTimeout(() => {
+                    if (!window.gameConnected) {
+                        console.log('Multiplayer failed, switching to simple mode');
+                        // Use proper URL construction for web deployment
+                        const baseUrl = window.location.origin;
+                        location.href = baseUrl + '/simple.html';
+                    }
+                }, 5000);
+            } else {
+                console.log('Socket.IO not available, switching to simple mode');
+                const baseUrl = window.location.origin;
+                location.href = baseUrl + '/simple.html';
+            }
+        } catch (error) {
+            console.log('Error initializing multiplayer, switching to simple mode:', error);
+            const baseUrl = window.location.origin;
+            location.href = baseUrl + '/simple.html';
+        }
     }
 });

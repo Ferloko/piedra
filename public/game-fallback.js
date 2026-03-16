@@ -77,6 +77,31 @@ class RockPaperScissorsGameHTTP {
             }
         } catch (error) {
             console.error('Error finding game:', error);
+            // Fallback to mock API
+            this.useMockAPI();
+        }
+    }
+    
+    async useMockAPI() {
+        console.log('Using mock API - Simulating multiplayer');
+        
+        try {
+            const data = await window.mockAPI.findGame(this.playerId);
+            
+            if (data.success) {
+                if (data.waiting) {
+                    this.searchText.textContent = 'Esperando a otro jugador (Modo Simulado)...';
+                    // Start polling to check if we've been matched
+                    this.startMockWaitingPolling();
+                } else if (data.gameId) {
+                    this.currentRoom = data.gameId;
+                    this.currentPlayer = data.player;
+                    this.showGameScreen();
+                    this.startMockPolling();
+                }
+            }
+        } catch (error) {
+            console.error('Mock API error:', error);
             this.searchText.textContent = 'Error al buscar partida';
         }
     }
@@ -103,10 +128,64 @@ class RockPaperScissorsGameHTTP {
         });
     }
     
+    startMockWaitingPolling() {
+        this.stopPolling();
+        this.mockWaitingPollingInterval = setInterval(async () => {
+            try {
+                // Simulate finding an opponent after 3 seconds
+                setTimeout(async () => {
+                    const data = await window.mockAPI.findGame(this.playerId);
+                    
+                    if (data.success && data.gameId) {
+                        // We've been matched!
+                        this.currentRoom = data.gameId;
+                        this.currentPlayer = data.player;
+                        this.showGameScreen();
+                        this.startMockPolling();
+                    }
+                }, 3000);
+            } catch (error) {
+                console.error('Mock waiting polling error:', error);
+            }
+        }, 5000); // Check every 5 seconds
+    }
+    
+    startMockPolling() {
+        this.stopPolling();
+        
+        // Only start polling if we have a valid gameId
+        if (!this.currentRoom) {
+            console.log('No gameId available, not starting mock polling');
+            return;
+        }
+        
+        this.mockPollingInterval = setInterval(async () => {
+            try {
+                const data = await window.mockAPI.checkGame(this.currentRoom);
+                
+                if (data.success) {
+                    const game = data.game;
+                    
+                    if (game.status === 'finished' && !this.hasChosen) {
+                        // Game finished without our choice, show result
+                        this.showResult({
+                            player1Choice: game.player1Choice,
+                            player2Choice: game.player2Choice,
+                            winner: game.winner
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Mock polling error:', error);
+            }
+        }, 2000); // Check every 2 seconds
+    }
+    
     async makeChoice(choice) {
         if (this.hasChosen) return;
         
         this.hasChosen = true;
+        this.lastChoice = choice;
         
         try {
             const response = await fetch(`${window.location.origin}/api/match?action=makeChoice&gameId=${this.currentRoom}&playerId=${this.playerId}&choice=${choice}`);
@@ -133,6 +212,36 @@ class RockPaperScissorsGameHTTP {
             }
         } catch (error) {
             console.error('Error making choice:', error);
+            // Fallback to mock API
+            this.useMockChoice(choice);
+        }
+    }
+    
+    async useMockChoice(choice) {
+        try {
+            const data = await window.mockAPI.makeChoice(this.currentRoom, this.playerId, choice);
+            
+            if (data.success) {
+                // Update UI
+                this.choiceButtons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.dataset.choice === choice) {
+                        btn.classList.add('selected');
+                    }
+                });
+                
+                // Show player's choice
+                const choiceEmoji = this.getChoiceEmoji(choice);
+                this.playerChoice.innerHTML = `<span class="choice-emoji">${choiceEmoji}</span>`;
+                
+                if (data.gameStatus === 'waiting_for_opponent') {
+                    this.gameStatus.textContent = 'Esperando la elección del oponente (Modo Simulado)...';
+                } else if (data.gameStatus === 'finished') {
+                    this.showResult(data.result);
+                }
+            }
+        } catch (error) {
+            console.error('Mock choice error:', error);
         }
     }
     
@@ -266,6 +375,14 @@ class RockPaperScissorsGameHTTP {
         if (this.waitingPollingInterval) {
             clearInterval(this.waitingPollingInterval);
             this.waitingPollingInterval = null;
+        }
+        if (this.mockPollingInterval) {
+            clearInterval(this.mockPollingInterval);
+            this.mockPollingInterval = null;
+        }
+        if (this.mockWaitingPollingInterval) {
+            clearInterval(this.mockWaitingPollingInterval);
+            this.mockWaitingPollingInterval = null;
         }
     }
     

@@ -3,31 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piedra, Papel o Tijera - Multiplayer</title>
+    <title>Piedra, Papel o Tijera - Modo Simple</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Socket.IO will be loaded conditionally by the server -->
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎮 Piedra, Papel o Tijera</h1>
-            <p class="subtitle">Juego Multiplayer</p>
+            <p class="subtitle">Modo Simple (vs Computadora)</p>
         </header>
 
         <main>
             <!-- Estado de conexión -->
             <div id="connection-status" class="status-card">
                 <div class="status-indicator" id="status-indicator"></div>
-                <span id="status-text">Conectando...</span>
+                <span id="status-text">Listo para jugar</span>
             </div>
 
-            <!-- Pantalla de búsqueda -->
-            <div id="search-screen" class="game-screen">
-                <div class="search-card">
-                    <h2>🔍 Buscando Oponente</h2>
-                    <div class="loading-spinner"></div>
-                    <p id="search-text">Esperando a otro jugador...</p>
-                    <button id="cancel-search" class="btn btn-secondary">Cancelar Búsqueda</button>
+            <!-- Pantalla principal -->
+            <div id="main-screen" class="game-screen">
+                <div class="main-card">
+                    <h2>🎯 ¡Listo para Jugar!</h2>
+                    <p>Juega contra la computadora en el clásico juego de Piedra, Papel o Tijera.</p>
+                    <button id="find-game" class="btn btn-primary btn-large">Comenzar Juego</button>
+                    <button id="try-multiplayer" class="btn btn-secondary">Intentar Modo Multiplayer</button>
+                </div>
+                
+                <div class="rules-card">
+                    <h3>📜 Reglas del Juego</h3>
+                    <ul>
+                        <li>✊ Piedra vence a Tijera</li>
+                        <li>✋ Papel vence a Piedra</li>
+                        <li>✌️ Tijera vence a Papel</li>
+                    </ul>
                 </div>
             </div>
 
@@ -47,7 +55,7 @@
                     
                     <div class="opponent-info">
                         <div class="player-card">
-                            <h3>Oponente</h3>
+                            <h3>Computadora</h3>
                             <div class="choice-display" id="opponent-choice">
                                 <span class="choice-emoji">❓</span>
                             </div>
@@ -87,37 +95,17 @@
                         <div class="result-vs">VS</div>
                         <div class="result-choice">
                             <span class="choice-emoji" id="result-opponent-choice">✋</span>
-                            <p>Oponente</p>
+                            <p>Computadora</p>
                         </div>
                     </div>
                     <div id="result-message" class="result-message"></div>
                     <button id="play-again" class="btn btn-primary">Jugar de Nuevo</button>
-                    <button id="new-game" class="btn btn-secondary">Buscar Nuevo Oponente</button>
-                </div>
-            </div>
-
-            <!-- Pantalla principal -->
-            <div id="main-screen" class="game-screen">
-                <div class="main-card">
-                    <h2>🎯 ¡Listo para Jugar!</h2>
-                    <p>Encuentra un oponente y demuestra tu habilidad en el clásico juego de Piedra, Papel o Tijera.</p>
-                    <button id="find-game" class="btn btn-primary btn-large">Buscar Partida</button>
-                </div>
-                
-                <div class="rules-card">
-                    <h3>📜 Reglas del Juego</h3>
-                    <ul>
-                        <li>✊ Piedra vence a Tijera</li>
-                        <li>✋ Papel vence a Piedra</li>
-                        <li>✌️ Tijera vence a Papel</li>
-                    </ul>
+                    <button id="new-game" class="btn btn-secondary">Volver al Inicio</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <script src="script.js"></script>
-    <script src="game-fallback.js"></script>
-    <script src="api.js"></script>
+    <script src="simple-game.js"></script>
 </body>
 </html>

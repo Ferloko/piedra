@@ -1,15 +1,6 @@
 {
   "version": 2,
-  "functions": {
-    "match.js": {
-      "maxDuration": 30
-    }
-  },
   "routes": [
-    {
-      "src": "/api/match",
-      "dest": "/match.js"
-    },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
