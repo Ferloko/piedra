@@ -80,15 +80,19 @@ class RockPaperScissorsGame {
         this.socket.on('connect', () => {
             clearTimeout(this.connectionTimeout);
             window.gameConnected = true; // Mark as connected for fallback detection
+            console.log('Socket.IO connected successfully');
             this.updateConnectionStatus(true);
         });
         
         this.socket.on('connect_error', (error) => {
             console.log('Socket.IO connection error:', error);
+            window.gameConnected = false;
             this.fallbackToHTTP();
         });
         
         this.socket.on('disconnect', () => {
+            console.log('Socket.IO disconnected');
+            window.gameConnected = false;
             this.updateConnectionStatus(false);
         });
         
@@ -301,23 +305,39 @@ document.addEventListener('DOMContentLoaded', () => {
         new RockPaperScissorsGameHTTP();
     } else {
         console.log('Production mode detected - trying multiplayer first, then simple mode');
+        // Initialize connection flag
+        window.gameConnected = false;
+        
         // Try multiplayer first with timeout
         try {
             if (typeof io !== 'undefined') {
                 console.log('Socket.IO available, trying multiplayer...');
-                new RockPaperScissorsGame();
+                const game = new RockPaperScissorsGame();
                 
                 // Set timeout to fallback to simple mode if multiplayer doesn't work
                 setTimeout(() => {
+                    console.log('Checking connection status after 5 seconds...');
+                    console.log('gameConnected flag:', window.gameConnected);
+                    
                     if (!window.gameConnected) {
-                        console.log('Multiplayer failed, switching to simple mode');
-                        // Use proper URL construction for web deployment
+                        console.log('Multiplayer timeout - switching to simple mode');
+                        const baseUrl = window.location.origin;
+                        location.href = baseUrl + '/simple.html';
+                    } else {
+                        console.log('Multiplayer connected successfully');
+                    }
+                }, 5000);
+                
+                // Additional timeout check after 10 seconds
+                setTimeout(() => {
+                    if (!window.gameConnected) {
+                        console.log('Multiplayer failed after 10 seconds - forcing simple mode');
                         const baseUrl = window.location.origin;
                         location.href = baseUrl + '/simple.html';
                     }
-                }, 5000);
+                }, 10000);
             } else {
-                console.log('Socket.IO not available, switching to simple mode');
+                console.log('Socket.IO not available, switching to simple mode immediately');
                 const baseUrl = window.location.origin;
                 location.href = baseUrl + '/simple.html';
             }
