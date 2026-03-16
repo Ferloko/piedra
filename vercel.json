@@ -1,6 +1,15 @@
 {
   "version": 2,
+  "functions": {
+    "sse.js": {
+      "maxDuration": 30
+    }
+  },
   "routes": [
+    {
+      "src": "/api/sse",
+      "dest": "/api/sse.js"
+    },
     {
       "src": "/(.*)",
       "dest": "/public/$1"

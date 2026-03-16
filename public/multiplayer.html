@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piedra, Papel o Tijera - Multiplayer Real</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Piedra, Papel o Tijera</h1>
+            <p class="subtitle">Multiplayer Real (Server-Sent Events)</p>
+        </header>
+
+        <main>
+            <!-- Estado de conexión -->
+            <div id="connection-status" class="status-card">
+                <div class="status-indicator" id="status-indicator"></div>
+                <span id="status-text">Conectando...</span>
+            </div>
+
+            <!-- Pantalla de búsqueda -->
+            <div id="search-screen" class="game-screen">
+                <div class="search-card">
+                    <h2>🔍 Buscando Oponente</h2>
+                    <div class="loading-spinner"></div>
+                    <p id="search-text">Esperando a otro jugador...</p>
+                    <button id="cancel-search" class="btn btn-secondary">Cancelar Búsqueda</button>
+                </div>
+            </div>
+
+            <!-- Pantalla de juego -->
+            <div id="game-screen" class="game-screen hidden">
+                <div class="game-info">
+                    <div class="player-info">
+                        <div class="player-card">
+                            <h3>Tú</h3>
+                            <div class="choice-display" id="player-choice">
+                                <span class="choice-emoji">❓</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="opponent-info">
+                        <div class="player-card">
+                            <h3>Oponente</h3>
+                            <div class="choice-display" id="opponent-choice">
+                                <span class="choice-emoji">❓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-controls">
+                    <div class="choices-container">
+                        <button class="choice-btn" data-choice="rock">
+                            <span class="choice-emoji">✊</span>
+                            <span class="choice-label">Piedra</span>
+                        </button>
+                        <button class="choice-btn" data-choice="paper">
+                            <span class="choice-emoji">✋</span>
+                            <span class="choice-label">Papel</span>
+                        </button>
+                        <button class="choice-btn" data-choice="scissors">
+                            <span class="choice-emoji">✌️</span>
+                            <span class="choice-label">Tijera</span>
+                        </button>
+                    </div>
+                    
+                    <div id="game-status" class="game-status"></div>
+                </div>
+            </div>
+
+            <!-- Pantalla de resultado -->
+            <div id="result-screen" class="game-screen hidden">
+                <div class="result-card">
+                    <h2 id="result-title">Resultado</h2>
+                    <div class="result-choices">
+                        <div class="result-choice">
+                            <span class="choice-emoji" id="result-player-choice">✊</span>
+                            <p>Tú</p>
+                        </div>
+                        <div class="result-vs">VS</div>
+                        <div class="result-choice">
+                            <span class="choice-emoji" id="result-opponent-choice">✋</span>
+                            <p>Oponente</p>
+                        </div>
+                    </div>
+                    <div id="result-message" class="result-message"></div>
+                    <button id="play-again" class="btn btn-primary">Jugar de Nuevo</button>
+                    <button id="new-game" class="btn btn-secondary">Buscar Nuevo Oponente</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="multiplayer-sse.js"></script>
+</body>
+</html>
